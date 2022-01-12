@@ -14,6 +14,7 @@ sensor:
   # Battery voltage as supplied by the UPS. (e.g. 27.3 volts)
   battery_voltage:
     _key: battv
+    _type: float
     state_class: measurement
     unit_of_measurement: 'V'
     icon: mdi:current-dc
@@ -21,6 +22,7 @@ sensor:
   # The nominal battery voltage. (e.g. 24.0 volts)
   battery_nominal_voltage:
     _key: nombattv
+    _type: float
     entity_category: diagnostic
     unit_of_measurement: 'V'
     icon: mdi:current-dc
@@ -28,6 +30,7 @@ sensor:
   # The percentage charge on the batteries. (e.g. 100.0 percent)
   battery:
     _key: bcharge
+    _type: float
     state_class: measurement
     device_class: battery
     unit_of_measurement: '%'
@@ -35,6 +38,7 @@ sensor:
   # If the battery charge percentage (BCHARGE) drops below this value, apcupsd will shutdown your system. (e.g. 5 percent)
   battery_shutdown:
     _key: mbattchg
+    _type: int
     entity_category: diagnostic
     unit_of_measurement: '%'
     icon: mdi:battery-alert
@@ -42,6 +46,7 @@ sensor:
   # Total (cumulative) time on batteries in seconds since apcupsd startup. (e.g. 0 seconds)
   total_time_on_battery:
     _key: cumonbatt
+    _type: int
     entity_category: diagnostic
     state_class: measurement
     unit_of_measurement: 'Seconds'
@@ -50,6 +55,7 @@ sensor:
   # The line voltage below which the UPS will switch to batteries. (e.g. 176.0 volts)
   transfer_low:
     _key: lotrans
+    _type: float
     entity_category: diagnostic
     unit_of_measurement: 'V'
     icon: mdi:sine-wave
@@ -57,6 +63,7 @@ sensor:
   # The line voltage above which the UPS will switch to batteries. (e.g. 288.0 volts)
   transfer_high:
     _key: hitrans
+    _type: float
     entity_category: diagnostic
     unit_of_measurement: 'V'
     icon: mdi:sine-wave
@@ -64,6 +71,7 @@ sensor:
   # The current line voltage as returned by the UPS. (e.g. 232.0 volts)
   input_voltage:
     _key: linev
+    _type: float
     state_class: measurement
     device_class: voltage
     unit_of_measurement: 'V'
@@ -71,6 +79,7 @@ sensor:
   # The input voltage that the UPS is configured to expect. (e.g. 230 volts)
   nominal_input_voltage:
     _key: nominv
+    _type: int
     entity_category: diagnostic
     unit_of_measurement: 'V'
     icon: mdi:sine-wave
@@ -78,6 +87,7 @@ sensor:
   # The remaining runtime left on batteries as estimated by the UPS. (e.g. 40.9 minutes)
   time_left:
     _key: timeleft
+    _type: float
     state_class: measurement
     unit_of_measurement: 'Minutes'
     icon: mdi:clock-alert
@@ -85,6 +95,7 @@ sensor:
   # apcupsd will shutdown your system if the remaining runtime equals or is below this point. (e.g. 3 minutes)
   shutdown_time:
     _key: mintimel
+    _type: int
     entity_category: diagnostic
     unit_of_measurement: 'Minutes'
     icon: mdi:timer-outline
@@ -92,12 +103,14 @@ sensor:
   # The percentage of load capacity as estimated by the UPS. (e.g. 8.0 percent)
   load:
     _key: loadpct
+    _type: float
     state_class: measurement
     unit_of_measurement: '%'
     icon: mdi:gauge
 
   # Current power usage in watts
   power:
+    _type: float
     state_class: measurement
     device_class: power
     unit_of_measurement: 'W'
@@ -107,6 +120,7 @@ sensor:
   # The maximum power in Watts that the UPS is designed to supply.
   nominal_power:
     _key: nompower
+    _type: int
     entity_category: diagnostic
     unit_of_measurement: 'W'
     icon: mdi:flash
@@ -126,6 +140,7 @@ sensor:
   # The number of transfers to batteries since apcupsd startup. (e.g. 0)
   transfer_count:
     _key: numxfers
+    _type: int
     entity_category: diagnostic
     unit_of_measurement: 'x'
     icon: mdi:counter

@@ -12,6 +12,13 @@ import paho.mqtt.publish as publish
 from apcaccess import status as apc
 from yaml import safe_load
 
+DEFAULT_TYPE_NAME = 'str'
+VALUE_TYPES = {
+    'float': float,
+    'int': int,
+    'str': str,
+}
+
 SensorConfig = NamedTuple('SensorConfig', [('topic', str), ('payload', Dict['str', Any])])
 
 __FILE = Path(__file__)
@@ -41,23 +48,30 @@ class Config:
         with BASE_DIR.joinpath('config.yml').open() as fd:
             raw_config = safe_load(fd)
 
+        self.__value_types = {}
         self.__sensors = []
         for sensor_type in self.__class__.SENSOR_TYPES:
             raw_sensors = raw_config.get(sensor_type) or {}
 
-            self.__sensors.extend([
-                self.__get_device_descriptor(sensor_type, name, config)
-                for name, config in sorted(raw_sensors.items())
-            ])
+            for name, config in sorted(raw_sensors.items()):
+                if config is None:
+                    config = {}
 
-    def __get_device_descriptor(self, sensor_type: str, name: str, config: Optional[dict]) -> SensorConfig:
-        if config is None:
-            config = {}
+                internal_config = self.__pop_internal_config(config)
 
-        query_key = name
-        if '_key' in config:
-            query_key = config.pop('_key')
+                query_key = internal_config.get('key', name)
 
+                self.__value_types[query_key] = VALUE_TYPES[internal_config.get('type', DEFAULT_TYPE_NAME)]
+                self.__sensors.append(self.__get_device_descriptor(sensor_type, name, query_key, config))
+
+    def __pop_internal_config(self, config: dict) -> dict:
+        return {
+            key.lstrip('_').lower(): config.pop(key)
+            for key in list(config)
+            if key.startswith('_')
+        }
+
+    def __get_device_descriptor(self, sensor_type: str, name: str, query_key: str, config: dict) -> SensorConfig:
         topic = 'homeassistant/{}/apc_ups_{}/{}/config'.format(sensor_type, self.__alias, query_key)
 
         payload = {
@@ -84,6 +98,10 @@ class Config:
     @property
     def sensors(self) -> List[SensorConfig]:
         return self.__sensors
+
+    @property
+    def value_types(self) -> Dict[str, callable]:
+        return self.__value_types
 
 
 class MqttClient:
@@ -191,7 +209,7 @@ def main():
     exiting_main_loop = False
     try:
         while True:
-            main_loop(apcupsd_host, mqtt_client, mqtt_topic)
+            main_loop(apcupsd_host, mqtt_client, mqtt_topic, config)
 
             for _ in range(interval * 2):
                 time.sleep(0.5)
@@ -234,7 +252,7 @@ def stop_main_loop(*args) -> None:
     exiting_main_loop = True
 
 
-def main_loop(apcupsd_host: str, mqtt_client: HaCapableMqttClient, mqtt_topic: str) -> None:
+def main_loop(apcupsd_host: str, mqtt_client: HaCapableMqttClient, mqtt_topic: str, config: Config) -> None:
     try:
         ups_data = apc.parse(apc.get(host=apcupsd_host), strip_units=True)
     except Exception as e:
@@ -249,8 +267,11 @@ def main_loop(apcupsd_host: str, mqtt_client: HaCapableMqttClient, mqtt_topic: s
         return
 
     status = {
-        key.lower(): str(value)
-        for key, value in ups_data.items()
+        key: config.value_types.get(key, VALUE_TYPES[DEFAULT_TYPE_NAME])(value)
+        for key, value in [
+            (key.lower(), value)
+            for key, value in ups_data.items()
+        ]
     }
 
     status_string = json.dumps(status, sort_keys=True)
