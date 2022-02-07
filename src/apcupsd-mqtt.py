@@ -5,6 +5,7 @@ import os
 import signal
 import sys
 import time
+from math import ceil
 from pathlib import Path
 from typing import Any, Dict, List, NamedTuple, Optional
 
@@ -27,6 +28,8 @@ BASE_DIR = __FILE.parent
 
 MQTT_CLIENT_ID = __FILE.name
 MQTT_TOPIC = 'apcupsd'
+
+update_interval = 10
 
 exiting_main_loop = False
 
@@ -84,6 +87,7 @@ class Config:
                 'model': self.__model,
                 'sw_version': self.__firmware,
             },
+            'expire_after': ceil(1.5 * update_interval),
             'unique_id': 'apc_ups_{}_{}'.format(self.__serial_no, query_key),
             'name': 'apc_ups_{}_{}'.format(self.__alias, name),
             'availability_topic': self.__availability_topic,
@@ -153,7 +157,7 @@ class HaCapableMqttClient(MqttClient):
 
 
 def main():
-    global exiting_main_loop
+    global exiting_main_loop, update_interval
 
     debug_logging = os.getenv('DEBUG', '0') == '1'
     mqtt_port = int(os.getenv('MQTT_PORT', 1883))
@@ -163,7 +167,7 @@ def main():
 
     mqtt_auth = {'username': mqtt_user, 'password': mqtt_password} if mqtt_user and mqtt_password else None
 
-    interval = int(os.getenv('APCUPSD_INTERVAL', 10))
+    update_interval = int(os.getenv('APCUPSD_INTERVAL', update_interval))
     alias = os.getenv('UPS_ALIAS', '')
     apcupsd_host = os.getenv('APCUPSD_HOST', '127.0.0.1')
 
@@ -211,7 +215,7 @@ def main():
         while True:
             main_loop(apcupsd_host, mqtt_client, mqtt_topic, config)
 
-            for _ in range(interval * 2):
+            for _ in range(update_interval * 2):
                 time.sleep(0.5)
 
                 if exiting_main_loop:
