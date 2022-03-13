@@ -5,11 +5,11 @@ import os
 import signal
 import sys
 import time
+import paho.mqtt.publish as publish
 from math import ceil
 from pathlib import Path
 from typing import Any, Dict, List, NamedTuple, Optional
 
-import paho.mqtt.publish as publish
 from apcaccess import status as apc
 from yaml import safe_load
 
@@ -41,6 +41,7 @@ class Config:
     )
 
     def __init__(self, serial_no, alias, model, firmware, mqtt_state_topic: str, mqtt_availability_topic: str):
+
         self.__serial_no = serial_no
         self.__alias = alias
         self.__model = model
@@ -95,6 +96,8 @@ class Config:
             'json_attributes_topic': self.__mqtt_state_topic,
             'value_template': '{{{{value_json.{}}}}}'.format(query_key),
         }
+
+        _LOGGER.debug('Update payload config file {!r}'.format(config))
         payload.update(config)
 
         return SensorConfig(topic, payload)
@@ -160,6 +163,7 @@ def main():
     global exiting_main_loop, update_interval
 
     debug_logging = os.getenv('DEBUG', '0') == '1'
+    debugpy_port = os.getenv('DEBUGPY_PORT', 5678)
     mqtt_port = int(os.getenv('MQTT_PORT', 1883))
     mqtt_host = os.getenv('MQTT_HOST', 'localhost')
     mqtt_user = os.getenv('MQTT_USER')
@@ -172,6 +176,13 @@ def main():
     apcupsd_host = os.getenv('APCUPSD_HOST', '127.0.0.1')
 
     configure_logging(debug_logging)
+    if debug_logging:
+        import debugpy
+        debugpy.listen(('0.0.0.0', debugpy_port))
+        _LOGGER.debug('Debugger is ready to be attached, press F5 port is listen on: {}'.format(debugpy_port))
+        _LOGGER.debug('Waiting for debugger attach')
+        debugpy.wait_for_client()
+        _LOGGER.debug('Visual Studio Code debugger is now attached')
 
     _LOGGER.info('Get initial data from UPS... {!r}'.format(apcupsd_host))
     ups = apc.parse(apc.get(host=apcupsd_host))
