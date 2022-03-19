@@ -1,5 +1,7 @@
 # APCUPSD to MQTT
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/46002afbd8b9446a80e97cea02d23940)](https://app.codacy.com/gh/amargo/apcupsd-mqtt?utm_source=github.com&utm_medium=referral&utm_content=amargo/apcupsd-mqtt&utm_campaign=Badge_Grade_Settings)
+
 - Publish APCUPSD data to MQTT
 - [Home Assistant](https://www.home-assistant.io/) integration with auto-discovery (compatible w/ version 2021.11+)
 
