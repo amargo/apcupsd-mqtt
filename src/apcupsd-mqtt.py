@@ -56,8 +56,10 @@ class Config:
         self.__sensors = []
         for sensor_type in self.__class__.SENSOR_TYPES:
             raw_sensors = raw_config.get(sensor_type) or {}
+            sorted_raw_sensors = sorted(raw_sensors.items())
+            _LOGGER.debug(f'raw_sensors len: {len(sorted_raw_sensors)}: {sorted_raw_sensors}')
 
-            for name, config in sorted(raw_sensors.items()):
+            for name, config in sorted_raw_sensors:
                 if config is None:
                     config = {}
 
@@ -163,6 +165,7 @@ def main():
     global exiting_main_loop, update_interval
 
     debug_logging = os.getenv('DEBUG', '0') == '1'
+    use_debugpy = os.getenv('USE_DEBUGPY', '0') == '1'
     debugpy_port = os.getenv('DEBUGPY_PORT', 5678)
     mqtt_port = int(os.getenv('MQTT_PORT', 1883))
     mqtt_host = os.getenv('MQTT_HOST', 'localhost')
@@ -176,7 +179,7 @@ def main():
     apcupsd_host = os.getenv('APCUPSD_HOST', '127.0.0.1')
 
     configure_logging(debug_logging)
-    if debug_logging:
+    if use_debugpy:
         import debugpy
         debugpy.listen(('0.0.0.0', debugpy_port))
         _LOGGER.debug('Debugger is ready to be attached, press F5 port is listen on: {}'.format(debugpy_port))
