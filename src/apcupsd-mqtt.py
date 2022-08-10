@@ -217,6 +217,8 @@ def main():
         }
         for sensor in config.sensors
     ]
+
+    _LOGGER.info('Publish sensor list to Home Assistant: {!r}'.format(discovery_msgs))
     mqtt_client.publish_multiple(discovery_msgs)
 
     _LOGGER.info('Starting value updater loop...')
