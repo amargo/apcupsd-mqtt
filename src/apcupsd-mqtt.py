@@ -270,6 +270,7 @@ def stop_main_loop(*args) -> None:
     global exiting_main_loop
 
     exiting_main_loop = True
+    _LOGGER.info('Exiting main loop...')
 
 
 def main_loop(apcupsd_host: str, mqtt_client: HaCapableMqttClient, mqtt_topic: str, config: Config) -> None:
