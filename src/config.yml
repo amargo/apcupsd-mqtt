@@ -77,12 +77,12 @@ sensor:
     unit_of_measurement: 'V'
 
   # The input voltage that the UPS is configured to expect. (e.g. 230 volts)
-  nominal_input_voltage:
-    _key: nominv
-    _type: int
-    entity_category: diagnostic
-    unit_of_measurement: 'V'
-    icon: mdi:sine-wave
+  # nominal_input_voltage:
+  #   _key: nominv
+  #   _type: int
+  #   entity_category: diagnostic
+  #   unit_of_measurement: 'V'
+  #   icon: mdi:sine-wave
 
   # The remaining runtime left on batteries as estimated by the UPS. (e.g. 40.9 minutes)
   time_left:
@@ -109,21 +109,21 @@ sensor:
     icon: mdi:gauge
 
   # Current power usage in watts
-  power:
-    _type: float
-    state_class: measurement
-    device_class: power
-    unit_of_measurement: 'W'
-    value_template: |-
-      {{ ((value_json.nompower | float) * (value_json.loadpct | float) / 100) | d }}
+  # power:
+  #   _type: float
+  #   state_class: measurement
+  #   device_class: power
+  #   unit_of_measurement: 'W'
+  #   value_template: |-
+  #     {{ ((value_json.nompower | float) * (value_json.loadpct | float) / 100) | d }}
 
   # The maximum power in Watts that the UPS is designed to supply.
-  nominal_power:
-    _key: nompower
-    _type: int
-    entity_category: diagnostic
-    unit_of_measurement: 'W'
-    icon: mdi:flash
+  # nominal_power:
+  #   _key: nompower
+  #   _type: int
+  #   entity_category: diagnostic
+  #   unit_of_measurement: 'W'
+  #   icon: mdi:flash
 
   # The reason for the last transfer to batteries.
   last_transfer:
