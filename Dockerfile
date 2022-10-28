@@ -1,4 +1,4 @@
-FROM python:3-alpine
+FROM python:3.12.0a1-alpine
 LABEL org.opencontainers.image.source="https://github.com/amargo/apcupsd-mqtt"
 
 WORKDIR /app
