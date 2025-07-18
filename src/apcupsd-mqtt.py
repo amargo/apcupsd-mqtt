@@ -9,6 +9,7 @@ import paho.mqtt.publish as publish
 from math import ceil
 from pathlib import Path
 from typing import Any, Dict, List, NamedTuple, Optional
+import hashlib
 
 from apcaccess import status as apc
 from yaml import safe_load
@@ -80,10 +81,14 @@ class Config:
     def __get_device_descriptor(self, sensor_type: str, name: str, query_key: str, config: dict) -> SensorConfig:
         topic = 'homeassistant/{}/apc_ups_{}/{}/config'.format(sensor_type, self.__alias, query_key)
 
+        # Create a stable device ID based on the alias
+        # This ensures the device ID remains consistent even if serial number changes
+        stable_device_id = 'apc_ups_{}'.format(self.__alias)
+
         payload = {
             'device': {
                 'identifiers': [
-                    'apc_ups_{}'.format(self.__serial_no),
+                    stable_device_id,
                 ],
                 'manufacturer': 'APC',
                 'name': self.__alias,
@@ -91,7 +96,7 @@ class Config:
                 'sw_version': self.__firmware,
             },
             'expire_after': ceil(1.5 * update_interval),
-            'unique_id': 'apc_ups_{}_{}'.format(self.__serial_no, query_key),
+            'unique_id': 'apc_ups_{}_{}'.format(self.__alias, query_key),
             'name': 'apc_ups_{}_{}'.format(self.__alias, name),
             'availability_topic': self.__availability_topic,
             'state_topic': self.__mqtt_state_topic,
@@ -194,8 +199,11 @@ def main():
     model = ups.get('MODEL', 'Unknown')
     firmware = ups.get('FIRMWARE', 'FW 000.00')
 
+    # If alias is not provided, create a stable one based on available information
     if not alias:
-        alias = serial_no
+        # Use a hash of model + host to create a stable identifier
+        stable_id = hashlib.md5(f"{model}_{apcupsd_host}".encode()).hexdigest()[:8]
+        alias = f"apc_{stable_id}"
 
     mqtt_client = HaCapableMqttClient(
         '{}/{}'.format(MQTT_TOPIC, alias),
