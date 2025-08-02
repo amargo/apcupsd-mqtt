@@ -21,8 +21,10 @@ on:
 
 jobs:
   build-and-push-docker-image:
-    name: Build apcupsd-mqtt image
+    name: Build image
     runs-on: ubuntu-latest
+    env:
+      IMAGE_NAME: apcupsd-mqtt-ha
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -34,7 +36,7 @@ jobs:
           flavor: latest=true
           images: |
             ghcr.io/${{ github.repository }}
-            docker.io/gszoboszlai/apcupsd-mqtt-ha
+            docker.io/gszoboszlai/${{ env.IMAGE_NAME }}
           tags: |
             type=ref,event=branch
             type=semver,pattern={{version}}
