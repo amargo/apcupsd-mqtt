@@ -6,18 +6,30 @@ on:
     branches: [ main ]
     paths:
       - '**.py'
-      - 'Dockerfile'
+      - '**requirements*.txt'
+      - 'pyproject.toml'
+      - 'Dockerfile*'
       - '.dockerignore'
       - '.github/workflows/**'
   pull_request:
     branches: [ main ]
     paths:
       - '**.py'
-      - 'Dockerfile'
+      - '**requirements*.txt'
+      - 'pyproject.toml'
+      - 'Dockerfile*'
       - '.dockerignore'
       - '.github/workflows/**'
   release:
     types: [published]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  packages: write
 
 jobs:
   build-and-push-docker-image:
@@ -27,11 +39,11 @@ jobs:
       IMAGE_NAME: apcupsd-mqtt-ha
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Docker meta
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           flavor: latest=true
           images: |
@@ -43,28 +55,28 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
 
       - name: Setup Docker buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
         with:
           install: true
 
       - name: Log into GitHub Container Registry
         if: github.event_name != 'pull_request'
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ secrets.GHCR_TOKEN || secrets.GITHUB_TOKEN }}
 
       - name: Log into Docker Hub
         if: github.event_name != 'pull_request'
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}          
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build and push Docker image
         id: build-and-push
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           push: ${{ github.event_name != 'pull_request' }}
